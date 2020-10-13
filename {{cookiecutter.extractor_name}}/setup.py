@@ -5,8 +5,8 @@ setup(
     name="{{cookiecutter.extractor_name}}",
     version="0.1.0",
     description="Singer.io tap for ...", #Add purpose
-    author="My name", #Add your name
-    url="http://singer.io",
+    author="Qualytics",
+    url="http://meltano.com",
     classifiers=["Programming Language :: Python :: 3 :: Only"],
     py_modules=["{{cookiecutter.package_name}}"],
     install_requires=[
