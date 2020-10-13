@@ -46,6 +46,6 @@ $ meltano add --custom extractor <extractor-name>
 To edit your config variables, edit meltano.yml file found in your Meltano
 project.
 
-Now you can get to work on writing your extractor! See todo's in **init**.py.
+Now you can get to work on writing your extractor! See todo's in \_\_init\_\_.py. 
 
 Copyright &copy; 2020 Qualytics
