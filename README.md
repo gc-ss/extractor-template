@@ -18,14 +18,13 @@ $ cookiecutter https://github.com/Qualytics/extractor-template
 extractor_name [e.g. 'extract-facebook']: extract-bigquery
 ```
 
-For the package_name, just hit enter and the package name will match your
-provided extractor name.
+For the package_name, hit enter and the package name will match your provided extractor name.
 
 ```bash
 package_name [extract_bigquery]:
 ```
 
-Your project now exists - next integrate with a Meltano projects.
+Your project now exists. Next integrate with a Meltano project.
 
 ## Add to Meltano Project
 
@@ -47,6 +46,6 @@ $ meltano add --custom extractor <extractor-name>
 To edit your config variables, edit meltano.yml file found in your Meltano
 project.
 
-Now you can get to work on writing your tap! See todo's in **init**.py.
+Now you can get to work on writing your extractor! See todo's in **init**.py.
 
-Copyright &copy; 2018 Stitch
+Copyright &copy; 2020 Qualytics
