@@ -1,0 +1,4 @@
+{
+    "extractor_name": "custom-extractor",
+    "package_name": "{{cookiecutter.extractor_name.replace('-','_')}}"
+}
