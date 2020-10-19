@@ -13,4 +13,4 @@ This extractor:
 
 ---
 
-Copyright &copy; 2020 Qualytics
+Copyright &copy; 2020 {{author_name}}
