@@ -30,9 +30,11 @@ def discover():
     raw_schemas = load_schemas()
     streams = []
     for stream_id, schema in raw_schemas.items():
-        # TODO: populate any metadata and stream's key properties here..
-        stream_metadata = []
+        # TODO: populate any additional metadata and stream's key properties here...
+        stream_metadata = [{"breadcrumb": [], "metadata": {"selected": True}}]
         key_properties = []
+        #TODO: Indicate what yout replication_key will be if you are using bookmarking it will become the bookmark_column in Sync
+        #TODO: Indicate if your replication method is "FULL_TABLE" or "INCREMENTAL" if you have give replication_key a value
         streams.append(
             CatalogEntry(
                 tap_stream_id=stream_id,
@@ -54,7 +56,7 @@ def discover():
 
 def sync(config, state, catalog):
     """ Sync data from tap source """
-    # Loop over selected streams in catalog
+    # Loop over selected streams in catalog created in discover()
     for stream in catalog.get_selected_streams(state):
         LOGGER.info("Syncing stream:" + stream.tap_stream_id)
 
@@ -68,10 +70,10 @@ def sync(config, state, catalog):
         )
 
         # TODO: delete and replace this inline function with your own data retrieval process:
-        tap_data = lambda: [{"id": x, "name": "row${x}"} for x in range(1000)]
+        extractor_data = lambda: [{"id": x, "name": "row${x}"} for x in range(1000)]
 
         max_bookmark = None
-        for row in tap_data():
+        for row in extractor_data():
             # TODO: place type conversions or transformations here
 
             # write one or more rows to the stream:

@@ -5,7 +5,7 @@ setup(
     name="{{cookiecutter.extractor_name}}",
     version="0.1.0",
     description="Meltano extractor for ...", #Add purpose
-    author="{{author_name}}",
+    author="{{cookiecutter.author_name}}",
     url="http://meltano.com",
     classifiers=["Programming Language :: Python :: 3 :: Only"],
     py_modules=["{{cookiecutter.package_name}}"],

@@ -46,6 +46,8 @@ $ meltano add --custom extractor <extractor-name>
 To edit your config variables, edit the meltano.yml file found in your Meltano
 project.
 
-Now you can get to work on writing your extractor! See todo's in \_\_init\_\_.py. 
+Now you can get to work on writing your extractor! See todo's in \_\_init\_\_.py.
+
+Visit the Github for [Singer-Python](https://github.com/singer-io/singer-python) for additional documentation
 
 Copyright &copy; 2020 Qualytics
