@@ -6,7 +6,7 @@ from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry
 from singer.schema import Schema
 
-
+# TODO: replace with the config keys required for your extractor
 REQUIRED_CONFIG_KEYS = ["key", "username", "password"]
 LOGGER = singer.get_logger()
 
@@ -16,7 +16,7 @@ def get_abs_path(path):
 
 
 def load_schemas():
-    """ Load schemas from schemas folder """
+    # TODO: This example loads schemas from a project folder, replace with whatever discovery mechanism is available
     schemas = {}
     for filename in os.listdir(get_abs_path('schemas')):
         path = get_abs_path('schemas') + '/' + filename
