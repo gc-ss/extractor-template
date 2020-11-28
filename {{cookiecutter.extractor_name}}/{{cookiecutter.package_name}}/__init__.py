@@ -7,39 +7,21 @@ from singer.catalog import Catalog, CatalogEntry
 from singer.schema import Schema
 
 # TODO: replace with the config keys required for your extractor
-REQUIRED_CONFIG_KEYS = ["key", "username", "password"]
+REQUIRED_CONFIG_KEYS = ["key", "username", "password", "schemas"]
 LOGGER = singer.get_logger()
 
-
-def get_abs_path(path):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
-
-
-def load_schemas():
-    # TODO: This example loads schemas from a project folder, replace with whatever discovery mechanism is available
-    schemas = {}
-    for filename in os.listdir(get_abs_path('schemas')):
-        path = get_abs_path('schemas') + '/' + filename
-        file_raw = filename.replace('.json', '')
-        with open(path) as file:
-            schemas[file_raw] = Schema.from_dict(json.load(file))
-    return schemas
-
-
-def discover():
-    raw_schemas = load_schemas()
-    streams = []
-    for stream_id, schema in raw_schemas.items():
-        # TODO: populate any additional metadata and stream's key properties here...
-        stream_metadata = [{"breadcrumb": [], "metadata": {"selected": True}}]
+def discover_catalog(config):
+    schemas = json.loads(config.get('schemas'))
+    LOGGER.info(type(schemas))
+    entries = []
+    for stream_id, schema in schemas.items():
+        stream_metadata = []
         key_properties = []
-        #TODO: Indicate what yout replication_key will be if you are using bookmarking it will become the bookmark_column in Sync
-        #TODO: Indicate if your replication method is "FULL_TABLE" or "INCREMENTAL" if you have give replication_key a value
-        streams.append(
+        entries.append(
             CatalogEntry(
                 tap_stream_id=stream_id,
                 stream=stream_id,
-                schema=schema,
+                schema=Schema.from_dict(schema),
                 key_properties=key_properties,
                 metadata=stream_metadata,
                 replication_key=None,
@@ -51,62 +33,73 @@ def discover():
                 replication_method=None,
             )
         )
-    return Catalog(streams)
+    return Catalog(entries)
 
+def do_discover(config):
+    discover_catalog(config).dump()
 
-def sync(config, state, catalog):
-    """ Sync data from tap source """
-    # Loop over selected streams in catalog created in discover()
-    for stream in catalog.get_selected_streams(state):
-        LOGGER.info("Syncing stream:" + stream.tap_stream_id)
+def write_schema_message(catalog_entry, bookmark_properties=None):
+    key_properties = common.get_key_properties(catalog_entry)
 
-        bookmark_column = stream.replication_key
+    singer.write_message(singer.SchemaMessage(
+        stream=catalog_entry.stream,
+        schema=catalog_entry.schema.to_dict(),
+        key_properties=key_properties,
+        bookmark_properties=bookmark_properties
+    ))
+
+def generate_record_messages(stream_id, bookmark_column, is_sorted):
+    # TODO: delete and replace this inline function with your own data retrieval process:
+    data_tapped = lambda: [{"name": x, "type": "type${x}"} for x in range(500)]
+
+    max_bookmark = None
+    for row in data_tapped():
+        # TODO: place type conversions or transformations here
+
+        # write one or more rows to the stream:
+        singer.write_records(stream_id.tap_stream_id, [row])
+        if bookmark_column:
+            if is_sorted:
+                # update bookmark to most recent value
+                singer.write_state({stream_id.tap_stream_id: row[bookmark_column]})
+            else:
+                # save max value if data unsorted
+                max_bookmark = max(max_bookmark, row[bookmark_column])
+    if bookmark_column and not is_sorted:
+        singer.write_state({stream_id.tap_stream_id: max_bookmark})
+
+def sync_streams(catalog, config, state):
+    # Loop over selected streams in catalog created in do_discover()
+    for catalog_entry in catalog.streams:
+        LOGGER.info("Syncing stream:" + catalog_entry.tap_stream_id)
+        bookmark_column = catalog_entry.replication_key
+
         is_sorted = True  # TODO: indicate whether data is sorted ascending on bookmark value
 
-        singer.write_schema(
-            stream_name=stream.tap_stream_id,
-            schema=Schema.to_dict(stream.schema),
-            key_properties=stream.key_properties,
-        )
+        write_schema_message(catalog_entry)
 
-        # TODO: delete and replace this inline function with your own data retrieval process:
-        extractor_data = lambda: [{"id": x, "name": "row${x}"} for x in range(1000)]
+        generate_record_messages(catalog_entry.tap_stream_id, bookmark_column, is_sorted)
 
-        max_bookmark = None
-        for row in extractor_data():
-            # TODO: place type conversions or transformations here
 
-            # write one or more rows to the stream:
-            singer.write_records(stream.tap_stream_id, [row])
-            if bookmark_column:
-                if is_sorted:
-                    # update bookmark to latest value
-                    singer.write_state({stream.tap_stream_id: row[bookmark_column]})
-                else:
-                    # if data unsorted, save max value until end of writes
-                    max_bookmark = max(max_bookmark, row[bookmark_column])
-        if bookmark_column and not is_sorted:
-            singer.write_state({stream.tap_stream_id: max_bookmark})
-    return
-
+def do_sync(config, catalog, state):
+    """ Sync data from tap source """
+    sync_streams(catalog, config, state)
 
 @utils.handle_top_exception(LOGGER)
 def main():
     # Parse command line arguments
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
 
-    # If discover flag was passed, run discovery mode and dump output to stdout
+    # If discover flag was passed, run discovery mode (which dumps output to standard out)
     if args.discover:
-        catalog = discover()
-        catalog.dump()
-    # Otherwise run in sync mode
+        do_discover(args.config)
+    elif args.catalog:
+        do_sync(args.config, args.catalog, args.state)
+    elif args.properties:
+        catalog = Catalog.from_dict(args.properties)
+        do_sync(args.config, catalog, args.state)
     else:
-        if args.catalog:
-            catalog = args.catalog
-        else:
-            catalog = discover()
-        sync(args.config, args.state, catalog)
-
+        LOGGER.info("No Properties were selected")
 
 if __name__ == "__main__":
     main()
