@@ -12,7 +12,6 @@ LOGGER = singer.get_logger()
 
 def discover_catalog(config):
     schemas = json.loads(config.get('schemas'))
-    LOGGER.info(type(schemas))
     entries = []
     for stream_id, schema in schemas.items():
         stream_metadata = []
